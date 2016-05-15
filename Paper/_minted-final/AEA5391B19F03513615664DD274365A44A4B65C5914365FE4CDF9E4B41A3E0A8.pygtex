@@ -1,0 +1,10 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYGdefault{k+kr}{data} \PYGdefault{k+kt}{Post} \PYGdefault{o+ow}{=} \PYGdefault{k+kt}{Post} \PYGdefault{p}{\PYGdefaultZob{}}
+  \PYGdefault{n}{fileName} \PYGdefault{o+ow}{::} \PYGdefault{k+kt}{String}
+  \PYGdefault{p}{,} \PYGdefault{n}{postTitle} \PYGdefault{o+ow}{::} \PYGdefault{k+kt}{String}
+  \PYGdefault{p}{,} \PYGdefault{n}{postAuthor} \PYGdefault{o+ow}{::} \PYGdefault{k+kt}{String}
+  \PYGdefault{p}{,} \PYGdefault{n}{postDate} \PYGdefault{o+ow}{::} \PYGdefault{k+kt}{DateTime}
+  \PYGdefault{p}{,} \PYGdefault{n}{syntaxTree} \PYGdefault{o+ow}{::} \PYGdefault{k+kt}{LaTeX}
+    \PYGdefault{p}{\PYGdefaultZcb{}}
+    \PYGdefault{k+kr}{deriving} \PYGdefault{p}{(}\PYGdefault{k+kt}{Eq}\PYGdefault{p}{,} \PYGdefault{k+kt}{Show}\PYGdefault{p}{)}
+\end{Verbatim}
