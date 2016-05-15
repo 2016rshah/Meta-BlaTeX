@@ -177,3 +177,5 @@ tramp
 # cask packages
 .cask/
 
+#Minted
+_minted*
