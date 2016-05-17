@@ -42,10 +42,11 @@
 \begin{document}
 \maketitle    
 
-% final product
-% design decisions
-% internals of tech used
-% steps taken to produce this (chronological)
+
+% TODO:
+% Abstract
+% Results, Discussion, and Conclusion
+% Make language more professional
          
 %-------------------------
  % Introduction               
@@ -72,40 +73,68 @@ Another popular content-management system for blogging is Wordpress. However, Wo
 \section{Development \& Techniques}
 
 \subsubsection{Requirements}
-% Technical requirements should be more about the requirements that would make this project a success
-This command line utility requires the Haskell Platform and LaTeX. The Haskell Platform includes GHC (a Haskell compiler) and Cabal, which is Haskell's primary package manager. LaTeX is needed to build LaTeX posts into their resulting PDFs. After the Haskell Platform has been installed, installing BlaTeX is simple:
+  % Technical requirements should be more about the requirements that would make this project a success
+  This command line utility requires the Haskell Platform and LaTeX. The Haskell Platform includes GHC (a Haskell compiler) and Cabal, which is Haskell's primary package manager. LaTeX is needed to build LaTeX posts into their resulting PDFs. After the Haskell Platform has been installed, installing BlaTeX is simple:
 
-\begin{lstlisting}
-> cabal install blatex
-\end{lstlisting}
+  \begin{lstlisting}
+  > cabal install blatex
+  \end{lstlisting}
 
 \subsubsection{Overview}
-% Briefly outline the method used to develop the project
-The project is a command line utility that is written in Haskell. Haskell is a statically-typed functional programming language that makes heavy use of the REPL. Libraries were tested/experimented with independently in their own files. After the necessary functions were written, they were integrated into the final product. The finished project was assembled into an executable file and deployed to Haskell's package manager (Hackage). 
+  % Briefly outline the method used to develop the project
+  The project is a command line utility that is written in Haskell. Haskell is a statically-typed functional programming language that makes heavy use of the REPL. Libraries were tested/experimented with independently in their own files. After the necessary functions were written, they were integrated into the final product. The finished project was assembled into an executable file and deployed to Haskell's package manager (Hackage). 
 
 \subsubsection{Limitations}
-% Equipment, time, materials, etc.
+  % Equipment, time, materials, etc.
 
-One potential limitation of this project is that it only compiles links to PDF files. Because LaTeX can't generate HTML, the blog will only be a series of interlinked PDF files rather than a series of interlinked HTML files. This is not necessarily a limitation, but it may interrupt the status quo of typical blogs made of HTML pages. 
+  One potential limitation of this project is that it only compiles links to PDF files. Because LaTeX can't generate HTML, the blog will only be a series of interlinked PDF files rather than a series of interlinked HTML files. This is not necessarily a limitation, but it may interrupt the status quo of typical blogs made of HTML pages. 
 
-In order to parse the user's LaTeX files into an abstract syntax tree that can be consumed by Haskell, this project uses a Haskell package called \texttt{HaTeX}. This is a wonderful package (most of the time). The problem arises in a specific parsing instance. In LaTeX, a math environment is defined between two dollar-signs (\texttt{\$MATH GOES HERE\$}). In order to use dollar-signs as actual dollar-signs (like ``You owe me \$5''), you use an escape character before the symbol (\textbackslash). This is an exception to the math environment rule. However, HaTeX is not programmed to catch this exception gracefully. It matches pairs of dollar-signs and treats everything in between as math. If there are an odd number of dollar signs, or only one (even if they are escaped properly) HaTeX will just flat out fail to parse the entire file and thus BlaTeX will similarly ignore the post. 
+  In order to parse the user's LaTeX files into an abstract syntax tree that can be consumed by Haskell, this project uses a Haskell package called \texttt{HaTeX}. This is a wonderful package (most of the time). The problem arises in a specific parsing instance. In LaTeX, a math environment is defined between two dollar-signs (\texttt{\$MATH GOES HERE\$}). In order to use dollar-signs as actual dollar-signs (like ``You owe me \$5''), you use an escape character before the symbol (\textbackslash). This is an exception to the math environment rule. However, HaTeX is not programmed to catch this exception gracefully. It matches pairs of dollar-signs and treats everything in between as math. If there are an odd number of dollar signs, or only one (even if they are escaped properly) HaTeX will just flat out fail to parse the entire file and thus BlaTeX will similarly ignore the post. 
 
-Dates are formatted in \texttt{DD MONTH YEAR} which contributes to the minimalist, classy theme of PDF blog posts; this date format is also used in the internal implementation. However, this becomes an issue if multiple posts are authored on same day because they will not be displayed in the correct order. 
+  Dates are formatted in \texttt{DD MONTH YEAR} which contributes to the minimalist, classy theme of PDF blog posts; this date format is also used in the internal implementation. However, this becomes an issue if multiple posts are authored on same day because they will not be displayed in the correct order. 
 
 \subsection{Research Theory and Design Criteria}
-% Clearly and Thoroughly present project methods, theory and algorithms
-% Expand upon process in detail – (what you did), making sure to represent a sufficient level of difficulty and complexity
+  % Clearly and Thoroughly present project methods, theory and algorithms
+  % Expand upon process in detail – (what you did), making sure to represent a sufficient level of difficulty and complexity
+  \subsubsection{Error Handling}
+    Error handling was one of the most complex aspects of this project. Haskell is a strongly typed language and utilizes Type Classes for a large portion of functionality to produce elegant and expressive code. Series of functions that could potentially create errors were chained together with an instance of an Applicative Functor. Originally the Maybe Applicative was used, but in order to produce meaningful error messages for the user, I switched to the Either Applicative. A simplified example of code used to handle some potential errors is as follows:
+    
+    \begin{minted}{haskell}
+createPost s t = Post <$> pure s <*> title <*> author <*> date <*> pure t
+  where 
+    date = (getCommandValue "date" t)
+    author = (getCommandValue "author" t)
+    title = (getCommandValue "title" t)
+    \end{minted} 
+
+    In this code, the \texttt{getCommand} function will either find the command within the abstract syntax tree, or the given command was never used. If the command was never used, no post can be created because the requisite information was missing. This series of function calls are tied together with \texttt{<*>}, the ``splat'' operator on Applicative instances. If one computation fails, the ultimate computation will also fail.  
+
+  \subsubsection{Input/Output}
+    Because Haskell is a purely functional programming language, no side effects are permitted. This makes input/output rather difficult, and thus \texttt{Monad}'s are used to simulate the desired side effects. However, ubiquitous use of Monads defeats the purpose of the purely functional nature of Haskell. Thus, the input-output code was confined to a single module where almost all effect-ful computations were handled. The main function was included here that glued together all pure functions. This function included code to automatically initate the proper file structure and skeleton files for a new user through system commands. It also included code for the building process. The output of this process is:
+
+    \begin{verbatim}
+Getting directory contents
+Turning directory contents into posts
+All posts are well formed
+Turning posts into an HTML element
+Reading the layout file
+Inserting HTML element into layout file
+Writing resulting file into index.html
+Success building!
+    \end{verbatim} 
+
+    If an error is raised at any point in the process, the process will halt and display the error message for the user to troubleshoot. 
 
 \subsection{Developmental Procedures}
-% Explain the steps you took such that your project could be repeated by others (how you did it)
+  % Explain the steps you took such that your project could be repeated by others (how you did it)
 
-In general terms: a directory containing posts is examined by BlaTeX, each post is parsed into an abstract syntax tree, information from this tree is parsed into a Haskell Post object, each object is converted into it's corresponding HTML, and this HTML is outputted into an output file at the correct location. 
+  In general terms: a directory containing posts is examined by BlaTeX, each post is parsed into an abstract syntax tree, information from this tree is parsed into a Haskell Post object, each post is stored into a list, the list is sorted by the date, and each object is converted into it's corresponding HTML, and this HTML is outputted into an output file at the correct location. 
 
-\subsubsection{The \texttt{Post} Algebraic Data Strucure}
+  \subsubsection{The \texttt{Post} Algebraic Data Strucure}
 
-Haskell doesn't have ``objects'' per-se, but rather it has ``algebraic data types''. They are kind of similar, so for the purposes of this paper you can consider them equivalent. The final definition for the Post was:
+    Haskell doesn't have ``objects'' per-se, but rather it has ``algebraic data types''. They are kind of similar, so for the purposes of this paper you can consider them equivalent. The final definition for the Post was:
 
-\begin{minted}{haskell}
+    \begin{minted}{haskell}
 data Post = Post {
   fileName :: String
   , postTitle :: String
@@ -114,14 +143,14 @@ data Post = Post {
   , syntaxTree :: LaTeX
     }
     deriving (Eq, Show)
-\end{minted}
+    \end{minted}
 
-This basically defines the structure of a Post based on each attribute it would have and what type that attribute would have. 
+  This basically defines the structure of a Post based on each attribute it would have and what type that attribute would have. 
 
-\subsubsection{BlazeHTML}
-The first part of the project that I tacked was generating HTML elements that would need to be inserted into the final file. Each post object would generate the following LI element:
+  \subsubsection{BlazeHTML}
+    The first part of the project that I tacked was generating HTML elements that would need to be inserted into the final file. Each post object would generate the following LI element:
 
-\begin{minted}{html}
+  \begin{minted}{html}
 <li class='blog-post'>
     <a class='post-link' href='posts/example-post.pdf'>
         Example Post
@@ -130,53 +159,53 @@ The first part of the project that I tacked was generating HTML elements that wo
         1 January 2015
     </div>
 </li>
-\end{minted}
+  \end{minted}
 
-\subsubsection{HaTeX}
-The second part of the project required that I read in LaTeX files for the posts and use them to extract certain meta-information about each post. This included the title of the post (inserted into the \texttt{.post-link} tag) and the date of the post (used to sort posts and displayed in the \texttt{.post-date} tag). 
+  \subsubsection{HaTeX}
+    The second part of the project required that I read in LaTeX files for the posts and use them to extract certain meta-information about each post. This included the title of the post (inserted into the \texttt{.post-link} tag) and the date of the post (used to sort posts and displayed in the \texttt{.post-date} tag). 
 
-\subsubsection{TagSoup}
+  \subsubsection{TagSoup}
 
-The user supplies a layout file which defines the format and style of their blog. BlaTeX finds the line \texttt{<ul id='blog-posts'></ul>} and inserts all the posts at that point. In order to do so, the project reads in an HTML file and derives it's abstract syntax tree with a package called TagSoup. TagSoup converts an HTML file into a list of HTML elements, and the HTML generated with BlazeHTML is inserted at the specified point. 
+    The user supplies a layout file which defines the format and style of their blog. BlaTeX finds the line \texttt{<ul id='blog-posts'></ul>} and inserts all the posts at that point. In order to do so, the project reads in an HTML file and derives it's abstract syntax tree with a package called TagSoup. TagSoup converts an HTML file into a list of HTML elements, and the HTML generated with BlazeHTML is inserted at the specified point. 
 
-\subsubsection{Dates}
+  \subsubsection{Dates}
 
-Support for dates was one of the final undertakings addressed. The Data.Dates package was used to parse the LaTeX dates. This allowed me to sort the list of posts chronologically.  
+    Support for dates was one of the final undertakings addressed. The Data.Dates package was used to parse the LaTeX dates. This allowed me to sort the list of posts chronologically.  
 
 % \pagebreak 
 
 \subsection{Internal Testing and Analysis}
-% How did you test and validate your code?
-This tool was written in Haskell, a statically-typed, functional, compiled programming language. The compiled nature filtered out most insidious bugs in the code. Haskell development is also strongly integrated with using a Haskell REPL. Thus, each function was experimented with in the REPL after being written and before being pushed to production. 
+  % How did you test and validate your code?
+  This tool was written in Haskell, a statically-typed, functional, compiled programming language. The compiled nature filtered out most insidious bugs in the code. Haskell development is also strongly integrated with using a Haskell REPL. Thus, each function was experimented with in the REPL after being written and before being pushed to production. 
 
 % \pagebreak
 
 \subsection{User Interface Testing and Analysis}
-% Explain your user validation test
-% Present the results of your user validation test
-% I literally used it to maintain my own blog
+  % Explain your user validation test
+  % Present the results of your user validation test
+  % I literally used it to maintain my own blog
 
-\begin{wrapfigure}{r}{0.6\textwidth}
-  % \begin{center}
-    \includegraphics[width=0.6\textwidth]{facebook}
-  % \end{center}
-  \centering
-\end{wrapfigure}
+  \begin{wrapfigure}{r}{0.6\textwidth}
+    % \begin{center}
+      \includegraphics[width=0.6\textwidth]{facebook}
+    % \end{center}
+    \centering
+  \end{wrapfigure}
 
-In order to test this project, I used it to create and maintain \url{http://rshah.org/blog}. Through my own use I discovered multiple improvements that could be made to the user interface and experience, which I promptly implemented. 
+  In order to test this project, I used it to create and maintain \url{http://rshah.org/blog}. Through my own use I discovered multiple improvements that could be made to the user interface and experience, which I promptly implemented. 
 
-I also posted my project in a Facebook group for functional programming and recieved an overwhelmingly positive response: 
+  I also posted my project in a Facebook group for functional programming and recieved an overwhelmingly positive response: 
 
-% \centerline{\includegraphics[width=.8\textwidth]{facebook}}
+  % \centerline{\includegraphics[width=.8\textwidth]{facebook}}
 
-It is also an open source project on Github, and met a similarly positive reaction from that community (with 17 Github ``stars''). 
+  It is also an open source project on Github, and met a similarly positive reaction from that community (with 17 Github ``stars''). 
 
 \subsection{Visual representation of Results}
-% Visually represent your project’s structure, results, algorithms
+  % Visually represent your project’s structure, results, algorithms
 
-My blog at \url{http://rshah.org/blog} is a visual representation of a static site compiled with BlaTeX.
+  My blog at \url{http://rshah.org/blog} is a visual representation of a static site compiled with BlaTeX.
 
-\centerline{\includegraphics[width=.8\textwidth]{BlaTeX_screenshot}}
+  \centerline{\includegraphics[width=.8\textwidth]{BlaTeX_screenshot}}
 
 %-------------------------
  % Results, Discussion, Conclusion              
