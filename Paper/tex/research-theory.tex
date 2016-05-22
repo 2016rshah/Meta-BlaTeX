@@ -1,0 +1,30 @@
+  % Clearly and Thoroughly present project methods, theory and algorithms
+  % Expand upon process in detail – (what you did), making sure to represent a sufficient level of difficulty and complexity
+  \subsubsection{Error Handling}
+    Error handling was one of the most complex aspects of this project. Haskell is a strongly typed language and utilizes Type Classes for a large portion of functionality to produce elegant and expressive code. Series of functions that could potentially create errors were chained together with an instance of an Applicative Functor. Originally the Maybe Applicative was used, but in order to produce meaningful error messages for the user, I switched to the Either Applicative. A simplified example of code used to handle some potential errors is as follows:
+    
+    \begin{minted}{haskell}
+createPost s t = Post <$> pure s <*> title <*> author <*> date <*> pure t
+  where 
+    date = (getCommandValue "date" t)
+    author = (getCommandValue "author" t)
+    title = (getCommandValue "title" t)
+    \end{minted} 
+
+    In this code, the \texttt{getCommand} function will either find the command within the abstract syntax tree, or the given command was never used. If the command was never used, no post can be created because the requisite information was missing. This series of function calls are tied together with \texttt{<*>}, the ``splat'' operator on Applicative instances. If one computation fails, the ultimate computation will also fail.  
+
+  \subsubsection{Input/Output}
+    Because Haskell is a purely functional programming language, no side effects are permitted. This makes input/output rather difficult, and thus \texttt{Monad}'s are used to simulate the desired side effects. However, ubiquitous use of Monads defeats the purpose of the purely functional nature of Haskell. Thus, the input-output code was confined to a single module where almost all effect-ful computations were handled. The main function was included here that glued together all pure functions. This function included code to automatically initate the proper file structure and skeleton files for a new user through system commands. It also included code for the building process. The output of this process is:
+
+    \begin{verbatim}
+Getting directory contents
+Turning directory contents into posts
+All posts are well formed
+Turning posts into an HTML element
+Reading the layout file
+Inserting HTML element into layout file
+Writing resulting file into index.html
+Success building!
+    \end{verbatim} 
+
+    If an error is raised at any point in the process, the process will halt and display the error message for the user to troubleshoot. 
