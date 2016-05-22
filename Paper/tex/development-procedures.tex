@@ -33,13 +33,15 @@ data Post = Post {
 </li>
   \end{minted}
 
+  The embedded domain specific language BlazeHTML~\cite{blazehtml} was used to generate HTML from Haskell. 
+
   \subsubsection{HaTeX}
-    The second part of the project required that I read in LaTeX files for the posts and use them to extract certain meta-information about each post. This included the title of the post (inserted into the \texttt{.post-link} tag) and the date of the post (used to sort posts and displayed in the \texttt{.post-date} tag). 
+    The second part of the project required that I read in LaTeX files for the posts and use them to extract certain meta-information about each post. This included the title of the post (inserted into the \texttt{.post-link} tag) and the date of the post (used to sort posts and displayed in the \texttt{.post-date} tag). A Haskell library called HaTeX~\cite{hatex} was used to generate abstract syntax trees (ASTs) from the supplied LaTeX files and the required information was extracted from the produced AST. 
 
   \subsubsection{TagSoup}
 
-    The user supplies a layout file which defines the format and style of their blog. BlaTeX finds the line \texttt{<ul id='blog-posts'></ul>} and inserts all the posts at that point. In order to do so, the project reads in an HTML file and derives it's abstract syntax tree with a package called TagSoup. TagSoup converts an HTML file into a list of HTML elements, and the HTML generated with BlazeHTML is inserted at the specified point. 
+    The user supplies a layout file which defines the format and style of their blog. BlaTeX finds the line \texttt{<ul id='blog-posts'></ul>} and inserts all the posts at that point. In order to do so, the project reads in an HTML file and derives it's abstract syntax tree with a package called TagSoup~\cite{tagsoup}. TagSoup converts an HTML file into a list of HTML elements, and the HTML generated with BlazeHTML is inserted at the specified point. 
 
   \subsubsection{Dates}
 
-    Support for dates was one of the final undertakings addressed. The Data.Dates package was used to parse the LaTeX dates. This allowed me to sort the list of posts chronologically.  
+    Support for dates was one of the final undertakings addressed. The Data.Dates package~\cite{dates} was used to parse the LaTeX dates. This allowed me to sort the list of posts chronologically.  
